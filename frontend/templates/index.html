@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lab 8 Venkat Arjun</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        label, input, button { display: block; margin-bottom: 10px; }
+        input[type="text"] { width: 300px; padding: 8px; }
+        button { padding: 10px 15px; cursor: pointer; }
+        #output-get, #output-insert {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            min-height: 50px;
+            white-space: pre-wrap; /* Preserving formatting */
+            word-wrap: break-word; /* Breaking the long words */
+            background-color: #f9f9f9;
+        }
+        h3 { margin-top: 30px; margin-bottom: 5px;}
+    </style>
+</head>
+<body>
+
+    <h1>Lab 8 Venkat Arjun</h1>
+
+    <label for="queryInput">Enter Text (for Get or Insert):</label>
+    <input type="text" id="queryInput" placeholder="Enter text here...">
+
+    <button id="getBtn">Get Best Match</button>
+    <button id="insertBtn">Insert Document</button>
+
+    <h3>Get Result:</h3>
+    <div id="output-get"></div>
+
+    <h3>Insert Result:</h3>
+    <div id="output-insert"></div>
+
+    <script>
+        const queryInput = document.getElementById('queryInput');
+        const getBtn = document.getElementById('getBtn');
+        const insertBtn = document.getElementById('insertBtn');
+        const outputGetDiv = document.getElementById('output-get');
+        const outputInsertDiv = document.getElementById('output-insert');
+
+        getBtn.addEventListener('click', async () => {
+            const query = queryInput.value.trim();
+            if (!query) {
+                outputGetDiv.textContent = 'Please enter text in the input box to search for.';
+                return;
+            }
+            outputGetDiv.textContent = 'Searching...'; 
+
+            try {
+                const response = await fetch(`/api/search/${encodeURIComponent(query)}`, { 
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    outputGetDiv.textContent = `Error ${response.status}: ${result.detail || JSON.stringify(result) || response.statusText}`;
+                } else {
+                    outputGetDiv.textContent = JSON.stringify(result, null, 2);
+                }
+            } catch (error) {
+                console.error('Get Error:', error);
+                outputGetDiv.textContent = 'Failed to fetch from frontend proxy. Error: ' + error.message;
+            }
+        });
+
+        insertBtn.addEventListener('click', async () => {
+            const textToInsert = queryInput.value.trim();
+            if (!textToInsert) {
+                outputInsertDiv.textContent = 'Please enter text in the input box to insert.';
+                return;
+            }
+            outputInsertDiv.textContent = 'Inserting...'; 
+
+            try {
+                const response = await fetch(`/api/insert`, { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ text: textToInsert })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    outputInsertDiv.textContent = `Error ${response.status}: ${result.detail || JSON.stringify(result) || response.statusText}`;
+                } else {
+                    outputInsertDiv.textContent = JSON.stringify(result, null, 2);
+                }
+            } catch (error) {
+                console.error('Insert Error:', error);
+                outputInsertDiv.textContent = 'Failed to fetch from frontend proxy. Error: ' + error.message;
+            }
+        });
+    </script>
+
+</body>
+</html>
